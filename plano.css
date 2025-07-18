@@ -254,7 +254,7 @@ h1 {
 .plano-wrapper {
   position: relative;
   width: 100%;
-  height: 80vh; /* esto activa el scroll vertical */
+  /*height: 80vh; /* esto activa el scroll vertical */
   overflow: auto;
   touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
