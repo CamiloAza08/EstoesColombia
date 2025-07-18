@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plano de Mesas - Segundo Piso</title>
+  <link rel="stylesheet" href="plano.css" />
+</head>
+<body>
+  <div id="bannerModoEdicion" style="display:none; 
+     background-color:#52f312; color:white; 
+     text-align:center; padding:10px; 
+     font-weight:bold; font-size:1.2em;">
+  Distribución de Mesas - ESTO ES COLOMBIA EDICIÓN
+</div>
+
+  <h1>Distribución de Mesas - ESTO ES COLOMBIA</h1>
+
+  <!-- Menú lateral oculto inicialmente -->
+<button id="toggle-sidebar" class="toggle-button" style="display: none;">☰ Opciones</button>
+
+<div id="editor-sidebar">
+  <h3>Opciones</h3>
+  <button id="btn-add-mesa">Agregar mesa</button>
+  <button id="btn-remove-mesa">Eliminar última mesa</button>
+  <button id="btn-add-zona">Agregar zona</button>
+  <button id="btn-remove-zona">Eliminar última zona</button>
+
+</div>
+
+
+  <!-- Botón tuerca para activar login -->
+  <button id="btn-edicion" title="Modo administrador">⚙️</button>
+
+  <button id="btnSave" style="display:none;">Save</button>
+
+
+
+  <!-- Modal Login -->
+<div id="login-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" title="Cerrar">&times;</span>
+    <h2>Login</h2>
+    <input type="text" id="usuario" placeholder="Usuario" autocomplete="username" />
+    <input type="password" id="contrasena" placeholder="Contraseña" autocomplete="current-password" />
+    <button id="login-btn">Entrar</button>
+    <p id="login-error" style="color: #e74c3c; display: none; margin-top: 10px; font-weight: bold;">
+      Usuario o contraseña incorrectos
+    </p>
+  </div>
+</div>
+
+<div class="plano-wrapper">
+  <div class="plano-content">
+  <div class="plano">
+
+    <!-- ZONAS -->
+    <div class="zona" style="top: 700px; left: 300px;">STAIRS</div>
+    <div class="zona" style="top: 50px; left: 300px;">WASHROOM</div>
+    <div class="zona" style="top: 350px; left: 950px ;">BALCONY<br>FACING<br>STAGE</div>
+    <div class="zona" style="top: 750px; left: 750px;">BAR<br>UP</div>
+
+    <!-- FILA DERECHA -->
+    <div class="mesa" data-id="200" style="top: 700px; left: 1300px;">200</div>
+    <div class="mesa" data-id="201" style="top: 650px; left: 1300px;">201</div>
+    <div class="mesa" data-id="202" style="top: 600px; left: 1300px;">202</div>
+    <div class="mesa" data-id="203" style="top: 550px; left: 1300px;">203</div>
+    <div class="mesa" data-id="204" style="top: 500px; left: 1300px;">204</div>
+    <div class="mesa" data-id="205" style="top: 450px; left: 1300px;">205</div>
+    <div class="mesa" data-id="206" style="top: 400px; left: 1300px;">206</div>
+    <div class="mesa" data-id="207" style="top: 350px; left: 1300px;">207</div>
+    <div class="mesa" data-id="208" style="top: 300px; left: 1300px;">208</div>
+
+    <!-- FILA IZQUIERDA -->
+    <div class="mesa" data-id="209" style="top: 100px; left: 200px;">209</div>
+    <div class="mesa" data-id="211" style="top: 180px; left: 200px;">211</div>
+    <div class="mesa" data-id="214" style="top: 260px; left: 200px;">214</div>
+    <div class="mesa" data-id="215" style="top: 340px; left: 200px;">215</div>
+    <div class="mesa" data-id="216" style="top: 420px; left: 200px;">216</div>
+
+    <!-- CENTRO CÍRCULOS VERTICALES -->
+    <div class="mesa" data-id="210" style="top: 100px; left: 500px;">210</div>
+    <div class="mesa" data-id="212" style="top: 180px; left: 500px;">212</div>
+    <div class="mesa" data-id="213" style="top: 260px; left: 500px;">213</div>
+    <div class="mesa" data-id="217" style="top: 340px; left: 500px;">217</div>
+    <div class="mesa" data-id="218" style="top: 420px; left: 500px;">218</div>
+
+    <!-- FILA DE 1UP A 4UP -->
+    <div class="mesa" data-id="1UP" style="top: 700px; left: 400px;">1UP</div>
+    <div class="mesa" data-id="2UP" style="top: 700px; left: 500px;">2UP</div>
+    <div class="mesa" data-id="3UP" style="top: 700px; left: 600px;">3UP</div>
+    <div class="mesa" data-id="4UP" style="top: 700px; left: 700px;">4UP</div>
+
+  </div>
+  </div>
+  </div>
+
+<script type="module" src="plano.js"></script>
+</body>
+</html>
