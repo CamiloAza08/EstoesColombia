@@ -31,6 +31,7 @@ function cargar(path) {
   return get(dbRef(path)).then(snap => snap.exists() ? snap.val() : null);
 }
 
+
 document.addEventListener("DOMContentLoaded", async () => {
   const plano = document.querySelector(".plano");
 
@@ -38,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let posicionesMesas = await cargar('posicionesMesas') || {};
   let posicionesZonas = await cargar('posicionesZonas') || {};
   let rotacionesZonas = await cargar('rotacionesZonas') || {};
+  
 
   let modoEdicion = false;
   let mesaCounter = 1000;
@@ -62,53 +64,156 @@ document.addEventListener("DOMContentLoaded", async () => {
   function generarIDMesa() { return `mesa-${mesaCounter++}`; }
   function generarIDZona() { return `zona-${zonaCounter++}`; }
 
-  function habilitarMesa(mesa) {
-    const id = mesa.dataset.id;
-    mesa.style.position = 'absolute';
-    if (estadoMesas[id]) mesa.classList.add('ocupada');
-    if (posicionesMesas[id]) {
-      mesa.style.top = posicionesMesas[id].top;
-      mesa.style.left = posicionesMesas[id].left;
+  function activarEdicionNombre(elemento, tipo) {
+  if (!modoEdicion) return;
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.value = elemento.textContent;
+  input.style.position = "absolute";
+  input.style.left = "0";
+  input.style.top = "0";
+  input.style.width = "100%";
+  input.style.height = "100%";
+  input.style.fontSize = "inherit";
+  input.style.textAlign = "center";
+  input.style.border = "none";
+  input.style.outline = "none";
+  input.style.background = "rgba(255,255,255,0.8)";
+
+  elemento.innerHTML = "";
+  elemento.appendChild(input);
+  input.focus();
+
+  input.addEventListener("blur", async () => {
+    const nuevoNombre = input.value.trim();
+    elemento.textContent = nuevoNombre || elemento.dataset.id;
+
+    const id = elemento.dataset.id;
+
+    if (tipo === "mesa") {
+      estadoMesas[id] = estadoMesas[id] || false;
+      posicionesMesas[id] = posicionesMesas[id] || { top: elemento.style.top, left: elemento.style.left };
+      await guardar("estadoMesas", estadoMesas);
+      await guardar("posicionesMesas", posicionesMesas);
+    } else if (tipo === "zona") {
+      posicionesZonas[id] = posicionesZonas[id] || {
+        top: elemento.style.top,
+        left: elemento.style.left,
+        width: elemento.style.width,
+        height: elemento.style.height,
+      };
+      await guardar("posicionesZonas", posicionesZonas);
     }
+  });
 
-    mesa.addEventListener('click', () => {
-      if (!modoEdicion) {
-        mesa.classList.toggle('ocupada');
-        estadoMesas[id] = mesa.classList.contains('ocupada');
-        guardar('estadoMesas', estadoMesas);
-      }
-    });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") input.blur();
+  });
+}
 
-    let isDragging = false, offsetX, offsetY;
 
-    mesa.addEventListener('mousedown', (e) => {
-      if (!modoEdicion) return;
-      isDragging = true;
-      offsetX = e.offsetX;
-      offsetY = e.offsetY;
-      mesa.style.zIndex = 1000;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (isDragging) {
-        const rect = plano.getBoundingClientRect();
-        mesa.style.left = `${e.clientX - rect.left - offsetX}px`;
-        mesa.style.top = `${e.clientY - rect.top - offsetY}px`;
-      }
-    });
-
-    document.addEventListener('mouseup', async () => {
-      if (isDragging) {
-        isDragging = false;
-        mesa.style.zIndex = '';
-        posicionesMesas[id] = {
-          top: mesa.style.top,
-          left: mesa.style.left
-        };
-        await guardar('posicionesMesas', posicionesMesas);
-      }
-    });
+  function habilitarMesa(mesa) {
+  const id = mesa.dataset.id;
+  mesa.style.position = 'absolute';
+  if (estadoMesas[id]) mesa.classList.add('ocupada');
+  if (posicionesMesas[id]) {
+    mesa.style.top = posicionesMesas[id].top;
+    mesa.style.left = posicionesMesas[id].left;
   }
+
+  mesa.addEventListener('click', () => {
+    if (!modoEdicion) {
+      mesa.classList.toggle('ocupada');
+      estadoMesas[id] = mesa.classList.contains('ocupada');
+      guardar('estadoMesas', estadoMesas);
+    }
+  });
+
+  let isDragging = false, offsetX, offsetY;
+
+  // PC (mouse)
+  mesa.addEventListener('mousedown', (e) => {
+    if (!modoEdicion) return;
+    isDragging = true;
+    offsetX = e.offsetX;
+    offsetY = e.offsetY;
+    mesa.style.zIndex = 1000;
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      const rect = plano.getBoundingClientRect();
+      mesa.style.left = `${e.clientX - rect.left - offsetX}px`;
+      mesa.style.top = `${e.clientY - rect.top - offsetY}px`;
+    }
+  });
+
+  document.addEventListener('mouseup', async () => {
+    if (isDragging) {
+      isDragging = false;
+      mesa.style.zIndex = '';
+      posicionesMesas[id] = {
+        top: mesa.style.top,
+        left: mesa.style.left
+      };
+      await guardar('posicionesMesas', posicionesMesas);
+    }
+  });
+
+  // iPad (touch)
+  mesa.addEventListener('touchstart', (e) => {
+    if (!modoEdicion) return;
+    isDragging = true;
+    const touch = e.touches[0];
+    const rect = mesa.getBoundingClientRect();
+    offsetX = touch.clientX - rect.left;
+    offsetY = touch.clientY - rect.top;
+    mesa.style.zIndex = 1000;
+  });
+
+  document.addEventListener('touchmove', (e) => {
+    if (isDragging) {
+      const touch = e.touches[0];
+      const rect = plano.getBoundingClientRect();
+      mesa.style.left = `${touch.clientX - rect.left - offsetX}px`;
+      mesa.style.top = `${touch.clientY - rect.top - offsetY}px`;
+    }
+  });
+
+  document.addEventListener('touchend', async () => {
+    if (isDragging) {
+      isDragging = false;
+      mesa.style.zIndex = '';
+      posicionesMesas[id] = {
+        top: mesa.style.top,
+        left: mesa.style.left
+      };
+      await guardar('posicionesMesas', posicionesMesas);
+    }
+  });
+
+ let touchTimer = null;
+
+// Para computadora (doble clic)
+mesa.addEventListener("dblclick", () => {
+  activarEdicionNombre(mesa, "mesa");
+});
+
+// Para iPad o dispositivos táctiles (mantener presionado)
+mesa.addEventListener("touchstart", (e) => {
+  if (!modoEdicion) return;
+  touchTimer = setTimeout(() => {
+    activarEdicionNombre(mesa, "mesa");
+  }, 600); // 600ms para activar la edición
+});
+
+mesa.addEventListener("touchend", () => {
+  clearTimeout(touchTimer);
+});
+
+}
+
 
   document.querySelectorAll('.mesa').forEach(habilitarMesa);
 
@@ -192,6 +297,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       await guardar('posicionesZonas', posicionesZonas);
     });
     resizeObserver.observe(zona);
+    zona.addEventListener("dblclick", () => {
+    activarEdicionNombre(zona, "zona");
+    });
+      let zonaTouchTimer = null;
+
+    zona.addEventListener("touchstart", (e) => {
+    if (!modoEdicion) return;
+    zonaTouchTimer = setTimeout(() => {
+    activarEdicionNombre(zona, "zona");
+    }, 600); // 600ms
+    });
+
+    zona.addEventListener("touchend", () => {
+      clearTimeout(zonaTouchTimer);
+    });
+
   }
 
   document.querySelectorAll('.zona').forEach(inicializarZona);
@@ -215,10 +336,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (user === "admin" && pass === "Colombia@1") {
       modal.classList.remove('show');
       cambiarModoEdicion(true);
+       // Mostrar el botón de opciones solo cuando se entre en modo edición
+    const toggleButton = document.getElementById("toggle-sidebar");
+    toggleButton.style.display = 'inline-block';  // Mostrar el botón de opciones
     } else {
       errorMsg.style.display = "block";
     }
   };
+
+ document.getElementById('toggle-sidebar').addEventListener('click', () => {
+  const sidebar = document.getElementById('editor-sidebar');
+  sidebar.classList.toggle('visible');
+  
+  });
+
 
   window.onclick = (event) => {
     if (event.target === modal) {
@@ -233,6 +364,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await guardar('posicionesMesas', posicionesMesas);
     await guardar('posicionesZonas', posicionesZonas);
     await guardar('rotacionesZonas', rotacionesZonas);
+    await guardar('mesasTodas', mesasTodas);      // 🔥 AHORA SÍ LO GUARDAS
+    await guardar('zonasTodas', zonasTodas);      // 🔥 AHORA SÍ LO GUARDAS
     setTimeout(() => location.reload(), 300);
   });
 
@@ -245,25 +378,45 @@ document.addEventListener("DOMContentLoaded", async () => {
       btn.style.display = activo ? 'block' : 'none';
     });
     sidebar.style.display = activo ? 'flex' : 'none';
+    // Asegurarse de que el botón de mostrar el sidebar sea visible cuando el modo de edición está activo
+  const toggleButton = document.getElementById("toggle-sidebar");
+  if (activo) {
+    toggleButton.style.display = 'inline-block';  // Muestra el botón cuando el modo de edición está activo
+  } else {
+    toggleButton.style.display = 'none';  // Lo oculta cuando el modo de edición está desactivado
+  }
   }
 
   document.getElementById('btn-add-mesa').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const id = generarIDMesa();
-    const mesa = document.createElement('div');
-    mesa.className = 'mesa';
-    mesa.dataset.id = id;
-    mesa.textContent = id;
-    mesa.style.top = '100px';
-    mesa.style.left = '100px';
-    mesa.style.position = 'absolute';
-    plano.appendChild(mesa);
-    posicionesMesas[id] = { top: '100px', left: '100px' };
-    estadoMesas[id] = false;
-    await guardar('posicionesMesas', posicionesMesas);
-    await guardar('estadoMesas', estadoMesas);
-    habilitarMesa(mesa);
-  });
+  e.preventDefault();
+  const id = generarIDMesa();
+  const mesa = document.createElement('div');
+  mesa.className = 'mesa';
+  mesa.dataset.id = id;
+  mesa.textContent = id;
+  mesa.style.position = 'absolute';
+
+  // Centrar en la parte visible del contenedor plano
+  const scrollLeft = plano.scrollLeft;
+  const scrollTop = plano.scrollTop;
+  const visibleWidth = plano.clientWidth;
+  const visibleHeight = plano.clientHeight;
+
+  const left = scrollLeft + visibleWidth / 2 - 50; // 50: mitad ancho mesa
+  const top = scrollTop + visibleHeight / 2 - 50;  // 50: mitad alto mesa
+
+  mesa.style.left = `${left}px`;
+  mesa.style.top = `${top}px`;
+
+  plano.appendChild(mesa);
+
+  posicionesMesas[id] = { top: mesa.style.top, left: mesa.style.left };
+  estadoMesas[id] = false;
+  await guardar('posicionesMesas', posicionesMesas);
+  await guardar('estadoMesas', estadoMesas);
+  habilitarMesa(mesa);
+});
+
 
   document.getElementById('btn-remove-mesa').addEventListener('click', async (e) => {
     e.preventDefault();
@@ -279,27 +432,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   document.getElementById('btn-add-zona').addEventListener('click', async (e) => {
-    e.preventDefault();
-    const id = generarIDZona();
-    const zona = document.createElement('div');
-    zona.className = 'zona';
-    zona.dataset.id = id;
-    zona.textContent = 'Nueva Zona';
-    zona.style.top = '200px';
-    zona.style.left = '200px';
-    zona.style.position = 'absolute';
-    zona.style.width = '120px';
-    zona.style.height = '120px';
-    plano.appendChild(zona);
-    posicionesZonas[id] = {
-      top: '200px',
-      left: '200px',
-      width: '120px',
-      height: '120px'
-    };
-    await guardar('posicionesZonas', posicionesZonas);
-    inicializarZona(zona);
-  });
+  e.preventDefault();
+  const id = generarIDZona();
+  const zona = document.createElement('div');
+  zona.className = 'zona';
+  zona.dataset.id = id;
+  zona.textContent = 'Nueva Zona';
+  zona.style.position = 'absolute';
+  zona.style.width = '120px';
+  zona.style.height = '120px';
+
+  // Centrar en el área visible del plano
+  const scrollLeft = plano.scrollLeft;
+  const scrollTop = plano.scrollTop;
+  const visibleWidth = plano.clientWidth;
+  const visibleHeight = plano.clientHeight;
+
+  const left = scrollLeft + visibleWidth / 2 - 60; // 60 = mitad del ancho (120px)
+  const top = scrollTop + visibleHeight / 2 - 60;
+
+  zona.style.left = `${left}px`;
+  zona.style.top = `${top}px`;
+
+  plano.appendChild(zona);
+  posicionesZonas[id] = {
+    top: zona.style.top,
+    left: zona.style.left,
+    width: zona.style.width,
+    height: zona.style.height
+  };
+  await guardar('posicionesZonas', posicionesZonas);
+  inicializarZona(zona);
+});
+
 
   document.getElementById('btn-remove-zona').addEventListener('click', async (e) => {
     e.preventDefault();
@@ -313,8 +478,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     await guardar('posicionesZonas', posicionesZonas);
     await guardar('rotacionesZonas', rotacionesZonas);
   });
-  document.getElementById("toggle-sidebar").addEventListener("click", () => {
-    const sidebar = document.getElementById("editor-sidebar");
-    sidebar.classList.toggle("show");
-  });
+
+  
+  
 });
+
+
+
