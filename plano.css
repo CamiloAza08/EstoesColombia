@@ -254,14 +254,19 @@ h1 {
 .plano-wrapper {
   position: relative;
   width: 100%;
-  overflow: scroll;
+  height: 80vh; /* esto activa el scroll vertical */
+  overflow: auto;
   touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
 }
 
 .plano-content {
   transform-origin: top left;
+  transform: scale(1); /* puedes ajustar esto a scale(0.8), etc. si usas zoom */
+  width: 1600px;
+  height: 900px;
 }
+
 
 /* Escalado responsive */
 @media (max-width: 1024px) {
